@@ -845,6 +845,7 @@ def check_min_weight_fraction_leaf(name):
                 "Failed with {0} min_weight_fraction_leaf={1}".format(
                     name, est.min_weight_fraction_leaf))
 
+
 @pytest.mark.parametrize('name', FOREST_ESTIMATORS)
 def test_min_weight_fraction_leaf(name):
     check_min_weight_fraction_leaf(name)
@@ -1367,3 +1368,25 @@ def test_little_tree_with_small_max_samples(ForestClass):
 
     msg = "Tree without `max_samples` restriction should have more nodes"
     assert tree1.node_count > tree2.node_count, msg
+
+
+def test_rf_regressor_prediction_range():
+    # Create a Random Number Generator with 42 as a fixed seed.
+    rng = np.random.RandomState(42)
+
+    n_samples = 100
+    n_features = 10
+    X_train = rng.normal(size=(n_samples, n_features))
+    y_train = rng.normal(size=n_samples)
+
+    rfr = RandomForestRegressor(random_state=42)
+    rfr.fit(X_train, y_train)
+
+    min_ytrain = np.min(y_train)
+    max_ytrain = np.max(y_train)
+
+    X_test = rng.normal(size=(n_samples, n_features))
+    y_pred = rfr.predict(X_test)
+
+    assert np.sum(y_pred < min_ytrain) == 0
+    assert np.sum(y_pred > max_ytrain) == 0
